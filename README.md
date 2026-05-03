@@ -2,7 +2,7 @@
 
 A browser-based solar energy calculator. Model your solar installation, household consumption, and battery storage across a 24-hour day or 7-day week — all calculations run client-side with no backend required.
 
-**Live demo:** https://dmeurer.github.io/solar-configurator/
+**Live demo:** [https://solar.d-meurer.com](https://solar.d-meurer.com)
 
 ## Features
 
@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173.
+Open [http://localhost:5173](http://localhost:5173).
 
 ```bash
 npm run build    # production build → dist/
