@@ -1,8 +1,10 @@
 import {
   ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+  type TooltipProps,
 } from 'recharts'
 import { useMemo } from 'react'
+import type { Consumer } from '../store'
 import { useStore } from '../store'
 import { computeSolar } from '../models/solar'
 import { computeConsumption } from '../models/consumption'
@@ -19,7 +21,52 @@ function downsample<T>(arr: T[], step: number): T[] {
   return arr.filter((_, i) => i % step === 0)
 }
 
-const STEP = 5
+const STEP = 1
+
+const POWER_LABELS: Record<string, string> = {
+  solar: 'Solar',
+  consumption: 'Total Consumption',
+  gridImport: 'Grid Import',
+  gridExport: 'Grid Export',
+}
+
+function PowerTooltip({ active, payload, label, activeConsumers }: TooltipProps<number, string> & { activeConsumers: Consumer[] }) {
+  if (!active || !payload?.length) return null
+  const visible = payload.filter((p) => (p.value ?? 0) > 0)
+  if (!visible.length) return null
+  return (
+    <div className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs space-y-1">
+      <div className="text-gray-400 mb-1">{minuteLabel(label as number)}</div>
+      {visible.map((p) => {
+        const consumer = activeConsumers.find((c) => `consumer_${c.id}` === p.dataKey)
+        const name = consumer?.name ?? POWER_LABELS[p.dataKey as string] ?? p.dataKey
+        return (
+          <div key={p.dataKey} className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+            <span className="text-gray-300">{name}</span>
+            <span className="ml-auto pl-4 tabular-nums text-white">{p.value} W</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function SocTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  if (!active || !payload?.length) return null
+  const p = payload[0]
+  if ((p.value ?? 0) <= 0) return null
+  return (
+    <div className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs space-y-1">
+      <div className="text-gray-400 mb-1">{minuteLabel(label as number)}</div>
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
+        <span className="text-gray-300">Battery SoC</span>
+        <span className="ml-auto pl-4 tabular-nums text-white">{(p.value as number).toFixed(1)} %</span>
+      </div>
+    </div>
+  )
+}
 
 export function DayChart() {
   const { solar, consumers, battery, weekWeather, selectedDate } = useStore()
@@ -93,23 +140,7 @@ export function DayChart() {
             stroke="#374151"
             width={50}
           />
-          <Tooltip
-            formatter={(value: number, name: string) => {
-              const consumer = activeConsumers.find((c) => `consumer_${c.id}` === name)
-              if (consumer) return [`${value} W`, consumer.name]
-              const labels: Record<string, string> = {
-                solar: 'Solar',
-                consumption: 'Total Consumption',
-                gridImport: 'Grid Import',
-                gridExport: 'Grid Export',
-              }
-              return [`${value} W`, labels[name] ?? name]
-            }}
-            labelFormatter={(v) => minuteLabel(v as number)}
-            contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
-            itemStyle={{ color: '#e5e7eb' }}
-            labelStyle={{ color: '#9ca3af' }}
-          />
+          <Tooltip content={<PowerTooltip activeConsumers={activeConsumers} />} />
           <Legend
             formatter={(value) => {
               const c = activeConsumers.find((c) => `consumer_${c.id}` === value)
@@ -168,13 +199,7 @@ export function DayChart() {
               stroke="#374151"
               width={50}
             />
-            <Tooltip
-              formatter={(value: number) => [`${(value as number).toFixed(1)} %`, 'Battery SoC']}
-              labelFormatter={(v) => minuteLabel(v as number)}
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
-              itemStyle={{ color: '#34d399' }}
-              labelStyle={{ color: '#9ca3af' }}
-            />
+            <Tooltip content={<SocTooltip />} />
             <Legend wrapperStyle={{ fontSize: 12 }} formatter={() => 'Battery SoC'} />
             <Area
               dataKey="soc"
