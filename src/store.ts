@@ -41,13 +41,16 @@ function makeWeekWeather(): DayWeather[] {
   return Array.from({ length: 7 }, () => ({ preset: 'sunny' as WeatherPreset }))
 }
 
-interface AppState {
+export interface ConfigSnapshot {
   viewMode: ViewMode
   selectedDate: string
   solar: SolarParams
   consumers: Consumer[]
   battery: BatteryParams
   weekWeather: DayWeather[]
+}
+
+interface AppState extends ConfigSnapshot {
   setViewMode: (m: ViewMode) => void
   setSelectedDate: (d: string) => void
   setSolar: (p: Partial<SolarParams>) => void
@@ -56,6 +59,7 @@ interface AppState {
   removeConsumer: (id: string) => void
   setBattery: (p: Partial<BatteryParams>) => void
   setDayWeather: (dayIndex: number, preset: WeatherPreset) => void
+  loadConfig: (snapshot: ConfigSnapshot) => void
 }
 
 const CONSUMER_COLORS = [
@@ -121,4 +125,5 @@ export const useStore = create<AppState>((set) => ({
       weekWeather[dayIndex] = { preset }
       return { weekWeather }
     }),
+  loadConfig: (snapshot) => set(snapshot),
 }))
