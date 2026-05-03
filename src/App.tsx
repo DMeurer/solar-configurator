@@ -9,7 +9,7 @@ import { readConfigFromUrl, buildShareUrl } from './config-url'
 
 export default function App() {
   const { t, i18n: i18nInstance } = useTranslation()
-  const { viewMode, setViewMode, selectedDate, setSelectedDate, loadConfig } = useStore()
+  const { viewMode, setViewMode, selectedDate, setSelectedDate, loadConfig, solar, consumers, battery, weekWeather } = useStore()
   const [copied, setCopied] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(288)
   const dragging = useRef(false)
@@ -43,6 +43,14 @@ export default function App() {
     const config = readConfigFromUrl()
     if (config) loadConfig(config)
   }, [loadConfig])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const url = buildShareUrl({ viewMode, selectedDate, solar, consumers, battery, weekWeather })
+      window.history.replaceState(null, '', url)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [viewMode, selectedDate, solar, consumers, battery, weekWeather])
 
   function handleShare() {
     const state = useStore.getState()
