@@ -1,0 +1,67 @@
+{
+  "header": {
+    "title": "Solar Dashboard",
+    "day": "Day",
+    "week": "7-Day",
+    "share": "Share",
+    "copied": "Copied!"
+  },
+  "solar": {
+    "title": "Solar",
+    "peakOutput": "Peak Output (W; Wp)",
+    "inverterLimit": "Inverter Limit (W)"
+  },
+  "consumers": {
+    "title": "Consumers",
+    "start": "Start",
+    "end": "End",
+    "watts": "Watts",
+    "on": "ON",
+    "off": "OFF",
+    "addBlank": "+ Blank",
+    "addFromLibrary": "+ From Library"
+  },
+  "battery": {
+    "title": "Battery",
+    "on": "ON",
+    "off": "OFF",
+    "capacity": "Capacity (Wh)",
+    "maxCharge": "Max Charge (W)",
+    "maxDischarge": "Max Discharge (W)",
+    "initialSoc": "Initial SoC (%)",
+    "efficiency": "Efficiency (%)"
+  },
+  "weather": {
+    "title": "Weather",
+    "title7day": "Weather (7 days)",
+    "sunny": "Sunny",
+    "partial": "Partial",
+    "cloudy": "Cloudy",
+    "rainy": "Rainy"
+  },
+  "chart": {
+    "solar": "Solar",
+    "totalConsumption": "Total Consumption",
+    "gridImport": "Grid Import",
+    "gridExport": "Grid Export",
+    "batterySoc": "Battery SoC"
+  },
+  "metrics": {
+    "solarGenerated": "Solar Generated",
+    "selfConsumed": "Self-Consumed",
+    "batteryCharged": "Battery Charged",
+    "batteryDischarged": "Battery Discharged",
+    "gridImport": "Grid Import",
+    "gridExport": "Grid Export",
+    "selfSufficiency": "Self-Sufficiency"
+  },
+  "devices": {
+    "Kitchen": "Kitchen",
+    "Laundry": "Laundry",
+    "Entertainment": "Entertainment",
+    "Climate": "Climate",
+    "Water": "Water",
+    "Mobility": "Mobility",
+    "Other": "Other"
+  }
+}

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import i18n from './i18n'
 import { useStore } from './store'
 import { Sidebar } from './components/Sidebar'
 import { DayChart } from './components/DayChart'
@@ -6,6 +8,7 @@ import { WeekChart } from './components/WeekChart'
 import { readConfigFromUrl, buildShareUrl } from './config-url'
 
 export default function App() {
+  const { t, i18n: i18nInstance } = useTranslation()
   const { viewMode, setViewMode, selectedDate, setSelectedDate, loadConfig } = useStore()
   const [copied, setCopied] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(288)
@@ -62,7 +65,7 @@ export default function App() {
     <div className="flex h-screen flex-col overflow-hidden">
       <header className="flex items-center gap-4 border-b border-gray-800 bg-gray-900 px-4 py-3 shrink-0">
         <span className="text-yellow-400 text-xl">☀️</span>
-        <h1 className="text-lg font-semibold tracking-tight">Solar Dashboard</h1>
+        <h1 className="text-lg font-semibold tracking-tight">{t('header.title')}</h1>
 
         <div className="flex items-center gap-1 ml-4 rounded-lg bg-gray-800 p-1">
           {(['day', 'week'] as const).map((m) => (
@@ -73,7 +76,7 @@ export default function App() {
                 viewMode === m ? 'bg-yellow-500 text-gray-900' : 'text-gray-400 hover:text-white'
               }`}
             >
-              {m === 'day' ? 'Day' : '7-Day'}
+              {m === 'day' ? t('header.day') : t('header.week')}
             </button>
           ))}
         </div>
@@ -88,6 +91,21 @@ export default function App() {
         )}
 
         <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-0.5 rounded-lg bg-gray-800 p-1">
+            {(['en', 'de'] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => i18n.changeLanguage(lang)}
+                className={`px-2 py-0.5 rounded text-xs font-medium uppercase transition-colors ${
+                  i18nInstance.language === lang
+                    ? 'bg-gray-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
           <button
             onClick={handleShare}
             className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -101,14 +119,14 @@ export default function App() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Copied!
+                {t('header.copied')}
               </>
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                Share
+                {t('header.share')}
               </>
             )}
           </button>

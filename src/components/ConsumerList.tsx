@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useStore, type Consumer } from '../store'
 import { DEVICE_LIBRARY, CATEGORIES } from '../devices'
 
@@ -55,6 +56,7 @@ function ConsumerRow({
   onDragEnter: (i: number) => void
   onDragEnd: () => void
 }) {
+  const { t } = useTranslation()
   const { updateConsumer, removeConsumer } = useStore()
   const upd = (patch: Partial<Consumer>) => updateConsumer(consumer.id, patch)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -101,7 +103,7 @@ function ConsumerRow({
           onClick={() => upd({ active: !consumer.active })}
           className={`px-2 py-0.5 rounded text-xs font-medium ${consumer.active ? 'bg-green-700 text-green-100' : 'bg-gray-600 text-gray-400'}`}
         >
-          {consumer.active ? 'ON' : 'OFF'}
+          {consumer.active ? t('consumers.on') : t('consumers.off')}
         </button>
         <button onClick={() => removeConsumer(consumer.id)} className="text-gray-500 hover:text-red-400 text-sm px-1">
           ×
@@ -109,18 +111,18 @@ function ConsumerRow({
       </div>
       <div className="grid grid-cols-3 gap-2">
         <label className="flex flex-col gap-0.5 text-xs">
-          <span className="text-gray-400">Start</span>
+          <span className="text-gray-400">{t('consumers.start')}</span>
           <TimeInput minutes={consumer.startMinute} onChange={(m) => upd({ startMinute: m })} />
         </label>
         <label className="flex flex-col gap-0.5 text-xs">
-          <span className="text-gray-400">End</span>
+          <span className="text-gray-400">{t('consumers.end')}</span>
           <TimeInput
             minutes={consumer.endMinute >= 1440 ? 1439 : consumer.endMinute}
             onChange={(m) => upd({ endMinute: m })}
           />
         </label>
         <label className="flex flex-col gap-0.5 text-xs">
-          <span className="text-gray-400">Watts</span>
+          <span className="text-gray-400">{t('consumers.watts')}</span>
           <input
             type="number"
             value={consumer.watts}
@@ -154,6 +156,7 @@ function DeviceLibrary({ onClose }: { onClose: () => void }) {
     onClose()
   }
 
+  const { t } = useTranslation()
   const devices = DEVICE_LIBRARY.filter((d) => d.category === activeCategory)
 
   return (
@@ -170,7 +173,7 @@ function DeviceLibrary({ onClose }: { onClose: () => void }) {
                 : 'text-gray-400 hover:text-gray-200'
             }`}
           >
-            {cat}
+            {t(`devices.${cat}`, cat)}
           </button>
         ))}
       </div>
@@ -199,6 +202,7 @@ function DeviceLibrary({ onClose }: { onClose: () => void }) {
 }
 
 export function ConsumerList() {
+  const { t } = useTranslation()
   const { consumers, addConsumer, reorderConsumers } = useStore()
   const [showLibrary, setShowLibrary] = useState(false)
   const dragIndex = useRef<number | null>(null)
@@ -222,7 +226,7 @@ export function ConsumerList() {
 
   return (
     <section className="space-y-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-400">Consumers</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-400">{t('consumers.title')}</h3>
       <div className="space-y-2">
         {consumers.map((c, i) => (
           <ConsumerRow
@@ -242,7 +246,7 @@ export function ConsumerList() {
           onClick={addConsumer}
           className="flex-1 rounded border border-dashed border-gray-600 py-2 text-sm text-gray-400 hover:border-blue-500 hover:text-blue-400 transition-colors"
         >
-          + Blank
+          {t('consumers.addBlank')}
         </button>
         <button
           onClick={() => setShowLibrary((v) => !v)}
@@ -252,7 +256,7 @@ export function ConsumerList() {
               : 'border-gray-600 text-gray-400 hover:border-blue-500 hover:text-blue-400'
           }`}
         >
-          + From Library
+          {t('consumers.addFromLibrary')}
         </button>
       </div>
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { EnergyMetrics } from '../models/battery'
 
 function Metric({ label, value, unit = 'kWh', color = 'text-white' }: {
@@ -18,16 +19,17 @@ function Metric({ label, value, unit = 'kWh', color = 'text-white' }: {
 }
 
 export function MetricsPanel({ metrics, batteryEnabled }: { metrics: EnergyMetrics; batteryEnabled: boolean }) {
+  const { t } = useTranslation()
   const m = metrics
   return (
     <div className="flex flex-wrap gap-2 justify-center">
-      <Metric label="Solar Generated" value={m.solarKwh} color="text-yellow-400" />
-      <Metric label="Self-Consumed" value={m.selfConsumedKwh} color="text-green-400" />
-      {batteryEnabled && <Metric label="Battery Charged" value={m.batteryChargedKwh} color="text-emerald-400" />}
-      {batteryEnabled && <Metric label="Battery Discharged" value={m.batteryDischargedKwh} color="text-teal-400" />}
-      <Metric label="Grid Import" value={m.gridImportKwh} color="text-red-400" />
-      <Metric label="Grid Export" value={m.gridExportKwh} color="text-blue-400" />
-      <Metric label="Self-Sufficiency" value={m.selfSufficiencyPct} unit="%" color="text-purple-400" />
+      <Metric label={t('metrics.solarGenerated')}    value={m.solarKwh}             color="text-yellow-400" />
+      <Metric label={t('metrics.selfConsumed')}      value={m.selfConsumedKwh}       color="text-green-400" />
+      {batteryEnabled && <Metric label={t('metrics.batteryCharged')}    value={m.batteryChargedKwh}    color="text-emerald-400" />}
+      {batteryEnabled && <Metric label={t('metrics.batteryDischarged')} value={m.batteryDischargedKwh} color="text-teal-400" />}
+      <Metric label={t('metrics.gridImport')}        value={m.gridImportKwh}         color="text-red-400" />
+      <Metric label={t('metrics.gridExport')}        value={m.gridExportKwh}         color="text-blue-400" />
+      <Metric label={t('metrics.selfSufficiency')}   value={m.selfSufficiencyPct}    unit="%" color="text-purple-400" />
     </div>
   )
 }

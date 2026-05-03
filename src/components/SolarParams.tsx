@@ -1,13 +1,15 @@
+import { useTranslation } from 'react-i18next'
 import { useStore } from '../store'
 
 export function SolarParams() {
+  const { t } = useTranslation()
   const { solar, setSolar } = useStore()
 
   return (
     <section className="space-y-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-yellow-400">Solar</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-yellow-400">{t('solar.title')}</h3>
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-gray-400">Peak Output (W)</span>
+        <span className="text-gray-400">{t('solar.peakOutput')}</span>
         <input
           type="number"
           className="input"
@@ -19,7 +21,7 @@ export function SolarParams() {
         />
       </label>
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-gray-400">Inverter Limit (W)</span>
+        <span className="text-gray-400">{t('solar.inverterLimit')}</span>
         <input
           type="number"
           className="input"

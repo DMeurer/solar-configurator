@@ -4,6 +4,7 @@ import {
   type TooltipProps,
 } from 'recharts'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Consumer } from '../store'
 import { useStore } from '../store'
 import { computeSolar } from '../models/solar'
@@ -23,14 +24,14 @@ function downsample<T>(arr: T[], step: number): T[] {
 
 const STEP = 1
 
-const POWER_LABELS: Record<string, string> = {
-  solar: 'Solar',
-  consumption: 'Total Consumption',
-  gridImport: 'Grid Import',
-  gridExport: 'Grid Export',
-}
-
 function PowerTooltip({ active, payload, label, activeConsumers }: TooltipProps<number, string> & { activeConsumers: Consumer[] }) {
+  const { t } = useTranslation()
+  const POWER_LABELS: Record<string, string> = {
+    solar: t('chart.solar'),
+    consumption: t('chart.totalConsumption'),
+    gridImport: t('chart.gridImport'),
+    gridExport: t('chart.gridExport'),
+  }
   if (!active || !payload?.length) return null
   const visible = payload.filter((p) => (p.value ?? 0) > 0)
   if (!visible.length) return null
@@ -53,6 +54,7 @@ function PowerTooltip({ active, payload, label, activeConsumers }: TooltipProps<
 }
 
 function SocTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  const { t } = useTranslation()
   if (!active || !payload?.length) return null
   const p = payload[0]
   if ((p.value ?? 0) <= 0) return null
@@ -61,7 +63,7 @@ function SocTooltip({ active, payload, label }: TooltipProps<number, string>) {
       <div className="text-gray-400 mb-1">{minuteLabel(label as number)}</div>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-        <span className="text-gray-300">Battery SoC</span>
+        <span className="text-gray-300">{t('chart.batterySoc')}</span>
         <span className="ml-auto pl-4 tabular-nums text-white">{(p.value as number).toFixed(1)} %</span>
       </div>
     </div>
@@ -69,6 +71,7 @@ function SocTooltip({ active, payload, label }: TooltipProps<number, string>) {
 }
 
 export function DayChart() {
+  const { t } = useTranslation()
   const { solar, consumers, battery, weekWeather, selectedDate } = useStore()
 
   const date = new Date(selectedDate + 'T00:00:00')
@@ -146,10 +149,10 @@ export function DayChart() {
               const c = activeConsumers.find((c) => `consumer_${c.id}` === value)
               if (c) return c.name
               const map: Record<string, string> = {
-                solar: 'Solar',
-                consumption: 'Total Consumption',
-                gridImport: 'Grid Import',
-                gridExport: 'Grid Export',
+                solar: t('chart.solar'),
+                consumption: t('chart.totalConsumption'),
+                gridImport: t('chart.gridImport'),
+                gridExport: t('chart.gridExport'),
               }
               return map[value] ?? value
             }}
@@ -200,7 +203,7 @@ export function DayChart() {
               width={50}
             />
             <Tooltip content={<SocTooltip />} />
-            <Legend wrapperStyle={{ fontSize: 12 }} formatter={() => 'Battery SoC'} />
+            <Legend wrapperStyle={{ fontSize: 12 }} formatter={() => t('chart.batterySoc')} />
             <Area
               dataKey="soc"
               fill="#065f46"

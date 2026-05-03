@@ -1,0 +1,67 @@
+{
+  "header": {
+    "title": "Solar-Dashboard",
+    "day": "Tag",
+    "week": "7-Tage",
+    "share": "Teilen",
+    "copied": "Kopiert!"
+  },
+  "solar": {
+    "title": "Solar",
+    "peakOutput": "Spitzenleistung (W; Wp)",
+    "inverterLimit": "Wechselrichterlimit (W)"
+  },
+  "consumers": {
+    "title": "Verbraucher",
+    "start": "Start",
+    "end": "Ende",
+    "watts": "Watt",
+    "on": "AN",
+    "off": "AUS",
+    "addBlank": "+ Neu",
+    "addFromLibrary": "+ Aus Bibliothek"
+  },
+  "battery": {
+    "title": "Akku / Batterie",
+    "on": "AN",
+    "off": "AUS",
+    "capacity": "Kapazität (Wh)",
+    "maxCharge": "Max. Ladeleistung (W)",
+    "maxDischarge": "Max. Entladeleistung (W)",
+    "initialSoc": "Startladezustand (%)",
+    "efficiency": "Wirkungsgrad (%)"
+  },
+  "weather": {
+    "title": "Wetter",
+    "title7day": "Wetter (7 Tage)",
+    "sunny": "Sonnig",
+    "partial": "Bewölkt",
+    "cloudy": "Bedeckt",
+    "rainy": "Regnerisch"
+  },
+  "chart": {
+    "solar": "Solar",
+    "totalConsumption": "Gesamtverbrauch",
+    "gridImport": "Netzbezug",
+    "gridExport": "Netzeinspeisung",
+    "batterySoc": "Batterieladung"
+  },
+  "metrics": {
+    "solarGenerated": "Solar erzeugt",
+    "selfConsumed": "Eigenverbrauch",
+    "batteryCharged": "Batterie geladen",
+    "batteryDischarged": "Batterie entladen",
+    "gridImport": "Netzbezug",
+    "gridExport": "Einspeisung",
+    "selfSufficiency": "Autarkie"
+  },
+  "devices": {
+    "Kitchen": "Küche",
+    "Laundry": "Wäsche",
+    "Entertainment": "Unterhaltung",
+    "Climate": "Klima",
+    "Water": "Wasser",
+    "Mobility": "Mobilität",
+    "Other": "Sonstiges"
+  }
+}
