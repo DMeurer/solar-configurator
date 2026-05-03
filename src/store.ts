@@ -57,6 +57,7 @@ interface AppState extends ConfigSnapshot {
   addConsumer: () => void
   updateConsumer: (id: string, patch: Partial<Consumer>) => void
   removeConsumer: (id: string) => void
+  reorderConsumers: (fromIndex: number, toIndex: number) => void
   setBattery: (p: Partial<BatteryParams>) => void
   setDayWeather: (dayIndex: number, preset: WeatherPreset) => void
   loadConfig: (snapshot: ConfigSnapshot) => void
@@ -118,6 +119,13 @@ export const useStore = create<AppState>((set) => ({
     })),
   removeConsumer: (id) =>
     set((s) => ({ consumers: s.consumers.filter((c) => c.id !== id) })),
+  reorderConsumers: (fromIndex, toIndex) =>
+    set((s) => {
+      const list = [...s.consumers]
+      const [moved] = list.splice(fromIndex, 1)
+      list.splice(toIndex, 0, moved)
+      return { consumers: list }
+    }),
   setBattery: (p) => set((s) => ({ battery: { ...s.battery, ...p } })),
   setDayWeather: (dayIndex, preset) =>
     set((s) => {

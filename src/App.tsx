@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from './store'
 import { Sidebar } from './components/Sidebar'
 import { DayChart } from './components/DayChart'
@@ -8,6 +8,33 @@ import { readConfigFromUrl, buildShareUrl } from './config-url'
 export default function App() {
   const { viewMode, setViewMode, selectedDate, setSelectedDate, loadConfig } = useStore()
   const [copied, setCopied] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(288)
+  const dragging = useRef(false)
+  const dragStartX = useRef(0)
+  const dragStartWidth = useRef(0)
+
+  function onDragStart(e: React.MouseEvent) {
+    dragging.current = true
+    dragStartX.current = e.clientX
+    dragStartWidth.current = sidebarWidth
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    function onMove(e: MouseEvent) {
+      if (!dragging.current) return
+      const next = Math.min(520, Math.max(180, dragStartWidth.current + e.clientX - dragStartX.current))
+      setSidebarWidth(next)
+    }
+    function onUp() {
+      dragging.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
 
   useEffect(() => {
     const config = readConfigFromUrl()
@@ -56,7 +83,7 @@ export default function App() {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="input text-sm ml-2"
+            className="input text-sm ml-2 w-36"
           />
         )}
 
@@ -89,7 +116,11 @@ export default function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+        <Sidebar width={sidebarWidth} />
+        <div
+          onMouseDown={onDragStart}
+          className="w-1 shrink-0 cursor-col-resize bg-gray-800 hover:bg-blue-500 transition-colors"
+        />
         <main className="flex-1 overflow-y-auto p-5">
           {viewMode === 'day' ? <DayChart /> : <WeekChart />}
         </main>

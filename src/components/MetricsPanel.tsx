@@ -17,14 +17,14 @@ function Metric({ label, value, unit = 'kWh', color = 'text-white' }: {
   )
 }
 
-export function MetricsPanel({ metrics }: { metrics: EnergyMetrics }) {
+export function MetricsPanel({ metrics, batteryEnabled }: { metrics: EnergyMetrics; batteryEnabled: boolean }) {
   const m = metrics
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       <Metric label="Solar Generated" value={m.solarKwh} color="text-yellow-400" />
       <Metric label="Self-Consumed" value={m.selfConsumedKwh} color="text-green-400" />
-      <Metric label="Battery Charged" value={m.batteryChargedKwh} color="text-emerald-400" />
-      <Metric label="Battery Discharged" value={m.batteryDischargedKwh} color="text-teal-400" />
+      {batteryEnabled && <Metric label="Battery Charged" value={m.batteryChargedKwh} color="text-emerald-400" />}
+      {batteryEnabled && <Metric label="Battery Discharged" value={m.batteryDischargedKwh} color="text-teal-400" />}
       <Metric label="Grid Import" value={m.gridImportKwh} color="text-red-400" />
       <Metric label="Grid Export" value={m.gridExportKwh} color="text-blue-400" />
       <Metric label="Self-Sufficiency" value={m.selfSufficiencyPct} unit="%" color="text-purple-400" />

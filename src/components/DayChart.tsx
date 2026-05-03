@@ -77,52 +77,34 @@ export function DayChart() {
     1000,
   )
 
-  const tooltipFormatter = (value: number, name: string) => {
-    if (name === 'soc') return [`${value.toFixed(1)} %`, 'Battery SoC']
-    const consumer = activeConsumers.find((c) => `consumer_${c.id}` === name)
-    if (consumer) return [`${value} W`, consumer.name]
-    const labels: Record<string, string> = {
-      solar: 'Solar',
-      consumption: 'Total Consumption',
-      gridImport: 'Grid Import',
-      gridExport: 'Grid Export',
-    }
-    return [`${value} W`, labels[name] ?? name]
-  }
+  const X_TICKS = [0, 180, 360, 540, 720, 900, 1080, 1260, 1380]
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <ResponsiveContainer width="100%" height={380}>
-        <ComposedChart data={chartData} margin={{ top: 8, right: 60, left: 0, bottom: 0 }}>
+    <div className="flex flex-col gap-4">
+      {/* Main power chart */}
+      <ResponsiveContainer width="100%" height={360}>
+        <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis
-            dataKey="minute"
-            tickFormatter={minuteLabel}
-            ticks={[0, 180, 360, 540, 720, 900, 1080, 1260, 1380]}
-            tick={{ fontSize: 11, fill: '#9ca3af' }}
-            stroke="#374151"
-          />
+          <XAxis dataKey="minute" tickFormatter={minuteLabel} ticks={X_TICKS} tick={{ fontSize: 11, fill: '#9ca3af' }} stroke="#374151" />
           <YAxis
-            yAxisId="power"
             domain={[0, Math.ceil(maxWatts / 500) * 500]}
             tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)}
             tick={{ fontSize: 11, fill: '#9ca3af' }}
             stroke="#374151"
             width={50}
           />
-          {battery.enabled && (
-            <YAxis
-              yAxisId="soc"
-              orientation="right"
-              domain={[0, 100]}
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 11, fill: '#34d399' }}
-              stroke="#374151"
-              width={45}
-            />
-          )}
           <Tooltip
-            formatter={tooltipFormatter}
+            formatter={(value: number, name: string) => {
+              const consumer = activeConsumers.find((c) => `consumer_${c.id}` === name)
+              if (consumer) return [`${value} W`, consumer.name]
+              const labels: Record<string, string> = {
+                solar: 'Solar',
+                consumption: 'Total Consumption',
+                gridImport: 'Grid Import',
+                gridExport: 'Grid Export',
+              }
+              return [`${value} W`, labels[name] ?? name]
+            }}
             labelFormatter={(v) => minuteLabel(v as number)}
             contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
             itemStyle={{ color: '#e5e7eb' }}
@@ -135,7 +117,6 @@ export function DayChart() {
               const map: Record<string, string> = {
                 solar: 'Solar',
                 consumption: 'Total Consumption',
-                soc: 'Battery SoC',
                 gridImport: 'Grid Import',
                 gridExport: 'Grid Export',
               }
@@ -143,22 +124,7 @@ export function DayChart() {
             }}
             wrapperStyle={{ fontSize: 12 }}
           />
-
-          {battery.enabled && (
-            <Area
-              yAxisId="soc"
-              dataKey="soc"
-              fill="#065f46"
-              stroke="#34d399"
-              strokeWidth={1.5}
-              dot={false}
-              fillOpacity={0.3}
-              type="monotone"
-            />
-          )}
-
           <Line
-            yAxisId="power"
             dataKey="solar"
             stroke="#fbbf24"
             strokeWidth={2.5}
@@ -167,7 +133,6 @@ export function DayChart() {
             activeDot={{ r: 4 }}
           />
           <Line
-            yAxisId="power"
             dataKey="consumption"
             stroke="#60a5fa"
             strokeWidth={2}
@@ -175,11 +140,9 @@ export function DayChart() {
             type="monotone"
             strokeDasharray="6 3"
           />
-
           {activeConsumers.map((c) => (
             <Line
               key={c.id}
-              yAxisId="power"
               dataKey={`consumer_${c.id}`}
               stroke={c.color}
               strokeWidth={1}
@@ -188,12 +151,45 @@ export function DayChart() {
               strokeOpacity={0.6}
             />
           ))}
-
-          <ReferenceLine yAxisId="power" y={0} stroke="#374151" />
+          <ReferenceLine y={0} stroke="#374151" />
         </ComposedChart>
       </ResponsiveContainer>
 
-      <MetricsPanel metrics={metrics} />
+      {/* Battery SoC chart */}
+      {battery.enabled && (
+        <ResponsiveContainer width="100%" height={180}>
+          <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="minute" tickFormatter={minuteLabel} ticks={X_TICKS} tick={{ fontSize: 11, fill: '#9ca3af' }} stroke="#374151" />
+            <YAxis
+              domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 11, fill: '#34d399' }}
+              stroke="#374151"
+              width={50}
+            />
+            <Tooltip
+              formatter={(value: number) => [`${(value as number).toFixed(1)} %`, 'Battery SoC']}
+              labelFormatter={(v) => minuteLabel(v as number)}
+              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8 }}
+              itemStyle={{ color: '#34d399' }}
+              labelStyle={{ color: '#9ca3af' }}
+            />
+            <Legend wrapperStyle={{ fontSize: 12 }} formatter={() => 'Battery SoC'} />
+            <Area
+              dataKey="soc"
+              fill="#065f46"
+              stroke="#34d399"
+              strokeWidth={1.5}
+              dot={false}
+              fillOpacity={0.3}
+              type="monotone"
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      )}
+
+      <MetricsPanel metrics={metrics} batteryEnabled={battery.enabled} />
     </div>
   )
 }

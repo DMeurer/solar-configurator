@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useStore, type Consumer } from '../store'
 import { DEVICE_LIBRARY, CATEGORIES } from '../devices'
 
@@ -40,13 +40,51 @@ function TimeInput({ minutes, onChange }: { minutes: number; onChange: (m: numbe
   )
 }
 
-function ConsumerRow({ consumer }: { consumer: Consumer }) {
+function ConsumerRow({
+  consumer,
+  index,
+  isDragOver,
+  onDragStart,
+  onDragEnter,
+  onDragEnd,
+}: {
+  consumer: Consumer
+  index: number
+  isDragOver: boolean
+  onDragStart: (i: number) => void
+  onDragEnter: (i: number) => void
+  onDragEnd: () => void
+}) {
   const { updateConsumer, removeConsumer } = useStore()
   const upd = (patch: Partial<Consumer>) => updateConsumer(consumer.id, patch)
+  const cardRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-3 space-y-2">
+    <div
+      ref={cardRef}
+      onDragStart={() => onDragStart(index)}
+      onDragEnter={() => onDragEnter(index)}
+      onDragEnd={() => { if (cardRef.current) cardRef.current.draggable = false; onDragEnd() }}
+      onDragOver={(e) => e.preventDefault()}
+      className={`rounded-lg border bg-gray-800/60 p-3 space-y-2 transition-colors ${
+        isDragOver ? 'border-blue-500 bg-blue-900/20' : 'border-gray-700'
+      }`}
+    >
       <div className="flex items-center gap-2">
+        <svg
+          onMouseDown={() => { if (cardRef.current) cardRef.current.draggable = true }}
+          onMouseUp={() => { if (cardRef.current) cardRef.current.draggable = false }}
+          className="w-4 h-4 text-gray-500 cursor-grab active:cursor-grabbing shrink-0"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+        >
+          <circle cx="5" cy="4" r="1.2" />
+          <circle cx="5" cy="8" r="1.2" />
+          <circle cx="5" cy="12" r="1.2" />
+          <circle cx="11" cy="4" r="1.2" />
+          <circle cx="11" cy="8" r="1.2" />
+          <circle cx="11" cy="12" r="1.2" />
+        </svg>
         <input
           type="color"
           value={consumer.color}
@@ -161,15 +199,41 @@ function DeviceLibrary({ onClose }: { onClose: () => void }) {
 }
 
 export function ConsumerList() {
-  const { consumers, addConsumer } = useStore()
+  const { consumers, addConsumer, reorderConsumers } = useStore()
   const [showLibrary, setShowLibrary] = useState(false)
+  const dragIndex = useRef<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  function handleDragStart(i: number) {
+    dragIndex.current = i
+  }
+
+  function handleDragEnter(i: number) {
+    setDragOverIndex(i)
+  }
+
+  function handleDragEnd() {
+    if (dragIndex.current !== null && dragOverIndex !== null && dragIndex.current !== dragOverIndex) {
+      reorderConsumers(dragIndex.current, dragOverIndex)
+    }
+    dragIndex.current = null
+    setDragOverIndex(null)
+  }
 
   return (
     <section className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-400">Consumers</h3>
       <div className="space-y-2">
-        {consumers.map((c) => (
-          <ConsumerRow key={c.id} consumer={c} />
+        {consumers.map((c, i) => (
+          <ConsumerRow
+            key={c.id}
+            consumer={c}
+            index={i}
+            isDragOver={dragOverIndex === i}
+            onDragStart={handleDragStart}
+            onDragEnter={handleDragEnter}
+            onDragEnd={handleDragEnd}
+          />
         ))}
       </div>
 
