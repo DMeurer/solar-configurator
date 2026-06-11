@@ -6,12 +6,18 @@ import { Sidebar } from './components/Sidebar'
 import { DayChart } from './components/DayChart'
 import { WeekChart } from './components/WeekChart'
 import { readConfigFromUrl, buildShareUrl } from './config-url'
+import { fetchForecast } from './models/forecast'
 
 export default function App() {
   const { t, i18n: i18nInstance } = useTranslation()
-  const { viewMode, setViewMode, selectedDate, setSelectedDate, loadConfig, solar, consumers, battery, weekWeather } = useStore()
+  const { viewMode, setViewMode, selectedDate, setSelectedDate, loadConfig, solar, groups, consumers, battery, weekWeather, setForecastData } = useStore()
   const [copied, setCopied] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(288)
+  const sidebarWide = sidebarWidth >= 400
+
+  function toggleSidebarWide() {
+    setSidebarWidth(sidebarWide ? 280 : 780)
+  }
   const dragging = useRef(false)
   const dragStartX = useRef(0)
   const dragStartWidth = useRef(0)
@@ -25,7 +31,7 @@ export default function App() {
 
     function onMove(e: MouseEvent) {
       if (!dragging.current) return
-      const next = Math.min(520, Math.max(180, dragStartWidth.current + e.clientX - dragStartX.current))
+      const next = Math.min(1560, Math.max(180, dragStartWidth.current + e.clientX - dragStartX.current))
       setSidebarWidth(next)
     }
     function onUp() {
@@ -46,11 +52,31 @@ export default function App() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const url = buildShareUrl({ viewMode, selectedDate, solar, consumers, battery, weekWeather })
+      const url = buildShareUrl({ viewMode, selectedDate, solar, groups, consumers, battery, weekWeather })
       window.history.replaceState(null, '', url)
     }, 500)
     return () => clearTimeout(timer)
-  }, [viewMode, selectedDate, solar, consumers, battery, weekWeather])
+  }, [viewMode, selectedDate, solar, groups, consumers, battery, weekWeather])
+
+  function shiftDate(delta: number) {
+    const d = new Date(selectedDate + 'T00:00:00Z') // parse as UTC to avoid DST shifts
+    d.setUTCDate(d.getUTCDate() + delta)
+    const newDate = d.toISOString().slice(0, 10)
+    setSelectedDate(newDate)
+
+    // Auto-fetch forecast if the target day uses forecast preset and has no data yet
+    const mondayIndex = (d.getDay() + 6) % 7
+    const preset = weekWeather[mondayIndex].preset
+    const current = useStore.getState().forecastData
+    if (preset === 'forecast' && !current?.[newDate]) {
+      fetchForecast(solar.lat, solar.lon, solar.tilt, solar.azimuth, solar.peakWatts, solar.inverterLimit)
+        .then((data) => {
+          const latest = useStore.getState().forecastData ?? {}
+          setForecastData({ ...latest, ...data })
+        })
+        .catch(() => {/* silently ignore — user can retry via the fetch button */})
+    }
+  }
 
   function handleShare() {
     const state = useStore.getState()
@@ -58,6 +84,7 @@ export default function App() {
       viewMode: state.viewMode,
       selectedDate: state.selectedDate,
       solar: state.solar,
+      groups: state.groups,
       consumers: state.consumers,
       battery: state.battery,
       weekWeather: state.weekWeather,
@@ -90,12 +117,23 @@ export default function App() {
         </div>
 
         {viewMode === 'day' && (
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="input text-sm ml-2 w-36"
-          />
+          <div className="flex items-center gap-1 ml-2">
+            <button
+              onClick={() => shiftDate(-1)}
+              className="rounded px-2 py-1 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              ‹
+            </button>
+            <span className="input text-sm w-28 text-center tabular-nums select-none">
+              {selectedDate}
+            </span>
+            <button
+              onClick={() => shiftDate(1)}
+              className="rounded px-2 py-1 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              ›
+            </button>
+          </div>
         )}
 
         <div className="ml-auto flex items-center gap-3">
@@ -142,7 +180,7 @@ export default function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar width={sidebarWidth} />
+        <Sidebar width={sidebarWidth} wide={sidebarWide} onToggleWide={toggleSidebarWide} />
         <div
           onMouseDown={onDragStart}
           className="w-1 shrink-0 cursor-col-resize bg-gray-800 hover:bg-blue-500 transition-colors"

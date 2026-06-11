@@ -9,17 +9,40 @@
   "solar": {
     "title": "Solar",
     "peakOutput": "Spitzenleistung (W; Wp)",
-    "inverterLimit": "Wechselrichterlimit (W)"
+    "inverterLimit": "Wechselrichterlimit (W)",
+    "forecastTitle": "Live-Vorhersage",
+    "lat": "Breitengrad",
+    "lon": "Längengrad",
+    "tilt": "Neigung (°)",
+    "azimuth": "Azimut (° 0=N 180=S)",
+    "citySearch": "Stadt suchen…",
+    "fetchForecast": "7-Tage-Vorhersage laden",
+    "forecastLoading": "Laden...",
+    "forecastActive": "Vorhersage aktiv (Echtdaten)",
+    "forecastError": "Fehler beim Laden",
+    "clearForecast": "Löschen"
   },
   "consumers": {
     "title": "Verbraucher",
+    "name": "Name",
     "start": "Start",
     "end": "Ende",
     "watts": "Watt",
+    "days": "Tage",
     "on": "AN",
     "off": "AUS",
     "addBlank": "+ Neu",
-    "addFromLibrary": "+ Aus Bibliothek"
+    "addFromLibrary": "+ Aus Bibliothek",
+    "addGroup": "Gruppe hinzufügen"
+  },
+  "days": {
+    "mon": "Montag",
+    "tue": "Dienstag",
+    "wed": "Mittwoch",
+    "thu": "Donnerstag",
+    "fri": "Freitag",
+    "sat": "Samstag",
+    "sun": "Sonntag"
   },
   "battery": {
     "title": "Akku / Batterie",
@@ -37,14 +60,16 @@
     "sunny": "Sonnig",
     "partial": "Bewölkt",
     "cloudy": "Bedeckt",
-    "rainy": "Regnerisch"
+    "rainy": "Regnerisch",
+    "forecast": "Vorhersage"
   },
   "chart": {
     "solar": "Solar",
     "totalConsumption": "Gesamtverbrauch",
     "gridImport": "Netzbezug",
     "gridExport": "Netzeinspeisung",
-    "batterySoc": "Batterieladung"
+    "batterySoc": "Batterieladung",
+    "forecastLimited": "Vorhersagedaten sind auf 7 Tage begrenzt"
   },
   "metrics": {
     "solarGenerated": "Solar erzeugt",

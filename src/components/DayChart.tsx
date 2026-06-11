@@ -5,7 +5,7 @@ import {
 } from 'recharts'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Consumer } from '../store'
+import type { Consumer, ConsumerGroup } from '../store'
 import { useStore } from '../store'
 import { computeSolar } from '../models/solar'
 import { computeConsumption } from '../models/consumption'
@@ -24,7 +24,9 @@ function downsample<T>(arr: T[], step: number): T[] {
 
 const STEP = 1
 
-function PowerTooltip({ active, payload, label, activeConsumers }: TooltipProps<number, string> & { activeConsumers: Consumer[] }) {
+type ActiveGroup = ConsumerGroup & { activeConsumers: Consumer[] }
+
+function PowerTooltip({ active, payload, label, activeGroups }: TooltipProps<number, string> & { activeGroups: ActiveGroup[] }) {
   const { t } = useTranslation()
   const POWER_LABELS: Record<string, string> = {
     solar: t('chart.solar'),
@@ -39,8 +41,8 @@ function PowerTooltip({ active, payload, label, activeConsumers }: TooltipProps<
     <div className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs space-y-1">
       <div className="text-gray-400 mb-1">{minuteLabel(label as number)}</div>
       {visible.map((p) => {
-        const consumer = activeConsumers.find((c) => `consumer_${c.id}` === p.dataKey)
-        const name = consumer?.name ?? POWER_LABELS[p.dataKey as string] ?? p.dataKey
+        const group = activeGroups.find((g) => `group_${g.id}` === p.dataKey)
+        const name = group?.name ?? POWER_LABELS[p.dataKey as string] ?? p.dataKey
         return (
           <div key={p.dataKey} className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
@@ -72,15 +74,28 @@ function SocTooltip({ active, payload, label }: TooltipProps<number, string>) {
 
 export function DayChart() {
   const { t } = useTranslation()
-  const { solar, consumers, battery, weekWeather, selectedDate } = useStore()
+  const { solar, groups, consumers, battery, weekWeather, selectedDate, forecastData } = useStore()
 
   const date = new Date(selectedDate + 'T00:00:00')
   const dayOfWeek = date.getDay()
-  const mondayIndex = (dayOfWeek + 6) % 7
+  const utcDate = new Date(selectedDate + 'T00:00:00Z')
+  const mondayIndex = (utcDate.getUTCDay() + 6) % 7
   const preset = weekWeather[mondayIndex].preset
 
+  const activeGroups: ActiveGroup[] = groups.map((group) => ({
+    ...group,
+    activeConsumers: consumers.filter(
+      (c) => c.groupId === group.id && c.active && c.daysActive.includes(dayOfWeek)
+    ),
+  })).filter((g) => g.activeConsumers.length > 0)
+
   const { solarPoints, consumptionPoints, metrics, chartData } = useMemo(() => {
-    const solarPoints = computeSolar(solar, selectedDate, preset)
+    const forecastDay = forecastData?.[selectedDate]
+    const solarPoints = preset === 'forecast'
+      ? (forecastDay
+          ? forecastDay.map((watts, minute) => ({ minute, watts }))
+          : Array.from({ length: 1440 }, (_, minute) => ({ minute, watts: 0 })))
+      : computeSolar(solar, selectedDate, preset)
     const consumptionPoints = computeConsumption(consumers, dayOfWeek)
     const batteryPoints = battery.enabled
       ? computeBattery(solarPoints, consumptionPoints, battery)
@@ -91,7 +106,12 @@ export function DayChart() {
     const sampledConsumption = downsample(consumptionPoints, STEP)
     const sampledBattery = batteryPoints ? downsample(batteryPoints, STEP) : null
 
-    const activeConsumers = consumers.filter((c) => c.active && c.daysActive.includes(dayOfWeek))
+    const groupsSnapshot = groups.map((group) => ({
+      ...group,
+      activeConsumers: consumers.filter(
+        (c) => c.groupId === group.id && c.active && c.daysActive.includes(dayOfWeek)
+      ),
+    })).filter((g) => g.activeConsumers.length > 0)
 
     const chartData = sampled.map((s, i) => {
       const row: Record<string, number> = {
@@ -108,19 +128,21 @@ export function DayChart() {
         row.gridImport = net < 0 ? Math.round(-net) : 0
         row.gridExport = net > 0 ? Math.round(net) : 0
       }
-      for (const c of activeConsumers) {
-        const t = s.minute
-        const start = c.startMinute
-        const end = c.endMinute >= 1440 ? 1440 : c.endMinute
-        row[`consumer_${c.id}`] = t >= start && t < end ? c.watts : 0
+      const t = s.minute
+      for (const group of groupsSnapshot) {
+        let total = 0
+        for (const c of group.activeConsumers) {
+          const end = c.endMinute >= 1440 ? 1440 : c.endMinute
+          if (t >= c.startMinute && t < end) total += c.watts
+        }
+        row[`group_${group.id}`] = total
       }
       return row
     })
 
     return { solarPoints, consumptionPoints, metrics, chartData }
-  }, [solar, consumers, battery, selectedDate, preset, dayOfWeek])
+  }, [solar, groups, consumers, battery, selectedDate, preset, dayOfWeek, forecastData])
 
-  const activeConsumers = consumers.filter((c) => c.active && c.daysActive.includes(dayOfWeek))
   const maxWatts = Math.max(
     ...solarPoints.map((p) => p.watts),
     ...consumptionPoints.map((p) => p.watts),
@@ -129,8 +151,21 @@ export function DayChart() {
 
   const X_TICKS = [0, 180, 360, 540, 720, 900, 1080, 1260, 1380]
 
+  const legendMap: Record<string, string> = {
+    solar: t('chart.solar'),
+    consumption: t('chart.totalConsumption'),
+    gridImport: t('chart.gridImport'),
+    gridExport: t('chart.gridExport'),
+  }
+
   return (
     <div className="flex flex-col gap-4">
+      {preset === 'forecast' && !forecastData?.[selectedDate] && (
+        <div className="rounded-lg bg-amber-900/30 border border-amber-700 px-4 py-3 text-sm text-amber-300 text-center">
+          ⚠ {t('chart.forecastLimited')}
+        </div>
+      )}
+
       {/* Main power chart */}
       <ResponsiveContainer width="100%" height={360}>
         <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
@@ -143,18 +178,12 @@ export function DayChart() {
             stroke="#374151"
             width={50}
           />
-          <Tooltip content={<PowerTooltip activeConsumers={activeConsumers} />} />
+          <Tooltip content={<PowerTooltip activeGroups={activeGroups} />} />
           <Legend
             formatter={(value) => {
-              const c = activeConsumers.find((c) => `consumer_${c.id}` === value)
-              if (c) return c.name
-              const map: Record<string, string> = {
-                solar: t('chart.solar'),
-                consumption: t('chart.totalConsumption'),
-                gridImport: t('chart.gridImport'),
-                gridExport: t('chart.gridExport'),
-              }
-              return map[value] ?? value
+              const group = activeGroups.find((g) => `group_${g.id}` === value)
+              if (group) return group.name
+              return legendMap[value] ?? value
             }}
             wrapperStyle={{ fontSize: 12 }}
           />
@@ -174,15 +203,15 @@ export function DayChart() {
             type="monotone"
             strokeDasharray="6 3"
           />
-          {activeConsumers.map((c) => (
+          {activeGroups.map((group) => (
             <Line
-              key={c.id}
-              dataKey={`consumer_${c.id}`}
-              stroke={c.color}
-              strokeWidth={1}
+              key={group.id}
+              dataKey={`group_${group.id}`}
+              stroke={group.color}
+              strokeWidth={1.5}
               dot={false}
               type="stepAfter"
-              strokeOpacity={0.6}
+              strokeOpacity={0.75}
             />
           ))}
           <ReferenceLine y={0} stroke="#374151" />

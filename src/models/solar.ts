@@ -45,6 +45,7 @@ export function computeSolar(
     partial: 0.75,
     cloudy: 0.4,
     rainy: 0.0,
+    forecast: 1.0,
   }
   const scale = presetScale[preset]
 

@@ -9,17 +9,40 @@
   "solar": {
     "title": "Solar",
     "peakOutput": "Peak Output (W; Wp)",
-    "inverterLimit": "Inverter Limit (W)"
+    "inverterLimit": "Inverter Limit (W)",
+    "forecastTitle": "Live Forecast",
+    "lat": "Latitude",
+    "lon": "Longitude",
+    "tilt": "Tilt (°)",
+    "azimuth": "Azimuth (° 0=N 180=S)",
+    "citySearch": "Search city…",
+    "fetchForecast": "Fetch 7-day Forecast",
+    "forecastLoading": "Loading...",
+    "forecastActive": "Forecast active (real data)",
+    "forecastError": "Forecast error",
+    "clearForecast": "Clear"
   },
   "consumers": {
     "title": "Consumers",
+    "name": "Name",
     "start": "Start",
     "end": "End",
     "watts": "Watts",
+    "days": "Days",
     "on": "ON",
     "off": "OFF",
     "addBlank": "+ Blank",
-    "addFromLibrary": "+ From Library"
+    "addFromLibrary": "+ From Library",
+    "addGroup": "Add Group"
+  },
+  "days": {
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "sun": "Sunday"
   },
   "battery": {
     "title": "Battery",
@@ -37,14 +60,16 @@
     "sunny": "Sunny",
     "partial": "Partial",
     "cloudy": "Cloudy",
-    "rainy": "Rainy"
+    "rainy": "Rainy",
+    "forecast": "Forecast"
   },
   "chart": {
     "solar": "Solar",
     "totalConsumption": "Total Consumption",
     "gridImport": "Grid Import",
     "gridExport": "Grid Export",
-    "batterySoc": "Battery SoC"
+    "batterySoc": "Battery SoC",
+    "forecastLimited": "Forecast data is limited to 7 days"
   },
   "metrics": {
     "solarGenerated": "Solar Generated",

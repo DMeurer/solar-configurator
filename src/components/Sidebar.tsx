@@ -3,7 +3,13 @@ import { ConsumerList } from './ConsumerList'
 import { BatteryParams } from './BatteryParams'
 import { WeatherSelector } from './WeatherSelector'
 
-export function Sidebar({ width }: { width: number }) {
+interface SidebarProps {
+  width: number
+  wide: boolean
+  onToggleWide: () => void
+}
+
+export function Sidebar({ width, wide, onToggleWide }: SidebarProps) {
   return (
     <aside
       style={{ width }}
@@ -11,11 +17,11 @@ export function Sidebar({ width }: { width: number }) {
     >
       <SolarParams />
       <hr className="border-gray-800" />
-      <ConsumerList />
+      <WeatherSelector />
+      <hr className="border-gray-800" />
+      <ConsumerList wide={wide} onToggleWide={onToggleWide} />
       <hr className="border-gray-800" />
       <BatteryParams />
-      <hr className="border-gray-800" />
-      <WeatherSelector />
     </aside>
   )
 }

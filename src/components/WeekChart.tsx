@@ -16,7 +16,7 @@ function addDays(dateStr: string, n: number) {
 }
 
 export function WeekChart() {
-  const { solar, consumers, battery, weekWeather, selectedDate } = useStore()
+  const { solar, consumers, battery, weekWeather, selectedDate, forecastData } = useStore()
 
   const startDate = useMemo(() => {
     const d = new Date(selectedDate + 'T00:00:00')
@@ -30,7 +30,12 @@ export function WeekChart() {
       const date = addDays(startDate, i)
       const dow = (i + 1) % 7
       const preset = weekWeather[i].preset
-      const solarPoints = computeSolar(solar, date, preset)
+      const forecastDay = forecastData?.[date]
+      const solarPoints = preset === 'forecast'
+        ? (forecastDay
+            ? forecastDay.map((watts, minute) => ({ minute, watts }))
+            : Array.from({ length: 1440 }, (_, minute) => ({ minute, watts: 0 })))
+        : computeSolar(solar, date, preset)
       const consumptionPoints = computeConsumption(consumers, dow)
       const batteryPoints = battery.enabled
         ? computeBattery(solarPoints, consumptionPoints, battery)
@@ -47,7 +52,7 @@ export function WeekChart() {
         gridExport: +m.gridExportKwh.toFixed(2),
       }
     })
-  }, [solar, consumers, battery, weekWeather, startDate])
+  }, [solar, consumers, battery, weekWeather, startDate, forecastData])
 
   return (
     <div className="flex flex-col gap-4 h-full">
